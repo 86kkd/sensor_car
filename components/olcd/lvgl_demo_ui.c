@@ -30,7 +30,7 @@ void display_txt(lv_disp_t *disp, const char *text, int16_t x, int16_t y) {
   lv_obj_align(label, LV_ALIGN_CENTER, x, y);
 }
 
-void example_lvgl_demo_ui(lv_disp_t *disp) {
+void lvgl_ui(lv_disp_t *disp) {
 
   // get pos and fromat string to print
 
