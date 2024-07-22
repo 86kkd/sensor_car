@@ -136,10 +136,5 @@ void run_olcd(void *pvParameters) {
   int *data = lcd_data->data;
   lv_disp_set_rotation(disp, LV_DISP_ROT_NONE);
   ESP_LOGI(TAG, "Display LVGL Scroll Text");
-  // Lock the mutex due to the LVGL APIs are not thread-safe
-  if (lvgl_port_lock(0)) {
-    lvgl_ui(disp, data);
-    // Release the mutex
-    lvgl_port_unlock();
-  }
+  lvgl_ui(disp, data);
 }

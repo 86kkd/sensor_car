@@ -6,6 +6,7 @@
 #include "core/lv_obj.h"
 #include "esp_log.h"
 #include "esp_log_level.h"
+#include <esp_lvgl_port.h>
 
 #include "esp_task.h"
 #include "hal/lv_hal_disp.h"
@@ -56,8 +57,13 @@ void lvgl_ui(lv_disp_t *disp, int *data) {
   lv_timer_t *timer = lv_timer_create(update_data_cb, 1000, &l_data);
   lv_timer_set_repeat_count(timer, -1);
   while (1) {
-    ESP_LOGI(TAG, "run into while");
-    lv_task_handler();
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    // Lock the mutex due to the LVGL APIs are not thread-safe
+    if (lvgl_port_lock(0)) {
+      ESP_LOGI(TAG, "run into while");
+      lv_task_handler();
+      // Release the mutex
+      lvgl_port_unlock();
+      vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
   }
 }
