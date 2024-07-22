@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+#include "olcd.h"
 #include "driver/i2c_master.h"
 #include "esp_err.h"
 #include "esp_lcd_panel_io.h"
@@ -45,9 +46,9 @@ static const char *TAG = "LCD";
 #define EXAMPLE_LCD_CMD_BITS 8
 #define EXAMPLE_LCD_PARAM_BITS 8
 
-extern void lvgl_ui(lv_disp_t *disp);
+extern void lvgl_ui(lv_disp_t *disp, int *data);
 
-void setup_olcd(void) {
+lv_disp_t *setup_olcd(void) {
   ESP_LOGI(TAG, "Initialize I2C bus");
   i2c_master_bus_handle_t i2c_bus = NULL;
   i2c_master_bus_config_t bus_config = {
@@ -125,12 +126,19 @@ void setup_olcd(void) {
                                             }};
   lv_disp_t *disp = lvgl_port_add_disp(&disp_cfg);
 
+  return disp;
+}
+
+void run_olcd(void *pvParameters) {
   /* Rotation of the screen */
+  olcd_data *lcd_data = (olcd_data *)pvParameters;
+  lv_disp_t *disp = lcd_data->disp;
+  int *data = lcd_data->data;
   lv_disp_set_rotation(disp, LV_DISP_ROT_NONE);
   ESP_LOGI(TAG, "Display LVGL Scroll Text");
   // Lock the mutex due to the LVGL APIs are not thread-safe
   if (lvgl_port_lock(0)) {
-    lvgl_ui(disp);
+    lvgl_ui(disp, data);
     // Release the mutex
     lvgl_port_unlock();
   }
