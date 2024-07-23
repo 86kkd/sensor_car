@@ -2,4 +2,6 @@
 build/**
 managed_components/**
 .cache/**
-sdkconfig*
+sdkconfig
+sdkconfig.old
+dependencies.lock
