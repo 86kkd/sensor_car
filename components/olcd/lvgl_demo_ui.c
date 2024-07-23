@@ -15,7 +15,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define STRING ("Temp\t: %.2f°C\nRH\t: %.2f%%\nIllum\t: %.2f lx\nCO: %.2f ppm")
+#define STRING ("Temp\t: %.2f°C\nRH\t: %.2f%%\nIllum\t: %.1f lx\nCO: %.2f ppm")
 
 static const char *TAG = "LCD_UI";
 
