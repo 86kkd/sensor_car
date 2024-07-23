@@ -1,6 +1,8 @@
 #include "aht20.h"
+#include "driver/i2c_types.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "i2c_facter.h"
 
 #define AHT20_DEVICE_ADDR 0x38
 #define AHT20_READ_ADDR ((AHT20_DEVICE_ADDR << 1) | 1)
@@ -18,8 +20,8 @@ uint8_t busy;
 uint8_t mode;
 uint8_t cal;
 
-i2c_master_bus_handle_t i2c_bus_handle = NULL;
-i2c_master_dev_handle_t i2c_dev_handle = NULL;
+extern i2c_master_bus_handle_t i2c_bus;
+i2c_master_dev_handle_t i2c_dev_handle_aht20 = NULL;
 
 //////////////////////////////////////////////// PRIVATE_DEFINITION
 ///////////////////////////////////////////////////
@@ -50,13 +52,30 @@ static esp_err_t m_AHT20_get_result(AHT20_data_t *pAHT20_data);
 //////////////////////////////////////////////// PRIVATE_DECLARATION
 ///////////////////////////////////////////////////
 
+esp_err_t setup_AHT20() {
+  esp_err_t ret;
+  i2c_device_config_t dev_config1 = {
+      .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+      .device_address = AHT20_DEVICE_ADDR, // 从设备1的7位I2C地址
+      .scl_speed_hz = I2C_MASTER_FREQ_HZ};
+  ret = i2c_master_bus_add_device(i2c_bus, &dev_config1, &i2c_dev_handle_aht20);
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "Failed to add I2C device 1: %s", esp_err_to_name(ret));
+    i2c_del_master_bus(i2c_bus);
+    return ret;
+  } else {
+    return ret;
+  }
+}
+
 /// @brief send init command to device, in order to init the device
 /// @return esp_err_t for result
 static esp_err_t m_AHT20_command_init(void) {
   esp_err_t ret;
   uint8_t init_cmd[] = {0xBE, 0x08, 0x00};
 
-  ret = i2c_master_transmit(i2c_dev_handle, init_cmd, sizeof(init_cmd), 100);
+  ret = i2c_master_transmit(i2c_dev_handle_aht20, init_cmd, sizeof(init_cmd),
+                            100);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Failed to send init command: %s", esp_err_to_name(ret));
   }
@@ -70,7 +89,7 @@ static esp_err_t m_AHT20_command_reset(void) {
   esp_err_t ret;
   uint8_t reset_cmd[] = {0xBA};
 
-  ret = i2c_master_transmit(i2c_dev_handle, reset_cmd, sizeof(reset_cmd),
+  ret = i2c_master_transmit(i2c_dev_handle_aht20, reset_cmd, sizeof(reset_cmd),
                             portMAX_DELAY);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Failed to send reset command: %s", esp_err_to_name(ret));
@@ -85,8 +104,8 @@ static esp_err_t m_AHT20_command_measure(void) {
   esp_err_t ret;
   uint8_t measure_cmd[] = {0xAC, 0x33, 0x00};
 
-  ret = i2c_master_transmit(i2c_dev_handle, measure_cmd, sizeof(measure_cmd),
-                            portMAX_DELAY);
+  ret = i2c_master_transmit(i2c_dev_handle_aht20, measure_cmd,
+                            sizeof(measure_cmd), portMAX_DELAY);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Failed to send measure command: %s", esp_err_to_name(ret));
   }
@@ -140,7 +159,8 @@ static esp_err_t m_AHT20_get_status(AHT20_data_t *pAHT20_data) {
 static esp_err_t m_AHT20_get_result(AHT20_data_t *pAHT20_data) {
   esp_err_t ret;
 
-  ret = i2c_master_receive(i2c_dev_handle, data, sizeof(data), portMAX_DELAY);
+  ret = i2c_master_receive(i2c_dev_handle_aht20, data, sizeof(data),
+                           portMAX_DELAY);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Failed to get result: %s", esp_err_to_name(ret));
   }

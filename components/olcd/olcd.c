@@ -11,6 +11,7 @@
 #include "esp_lcd_panel_ops.h"
 #include "esp_log.h"
 #include "esp_lvgl_port.h"
+#include "i2c_facter.h"
 #include "lvgl.h"
 #include <stdio.h>
 
@@ -28,9 +29,6 @@ static const char *TAG = "LCD";
 //////////////////// Please update the following configuration according to your
 /// LCD spec //////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define EXAMPLE_LCD_PIXEL_CLOCK_HZ (400 * 1000)
-#define EXAMPLE_PIN_NUM_SDA 1
-#define EXAMPLE_PIN_NUM_SCL 2
 #define EXAMPLE_PIN_NUM_RST -1
 #define EXAMPLE_I2C_HW_ADDR 0x3C
 
@@ -47,25 +45,14 @@ static const char *TAG = "LCD";
 #define EXAMPLE_LCD_PARAM_BITS 8
 
 extern void lvgl_ui(lv_disp_t *disp, int *data);
+extern i2c_master_bus_handle_t i2c_bus;
 
 lv_disp_t *setup_olcd(void) {
-  ESP_LOGI(TAG, "Initialize I2C bus");
-  i2c_master_bus_handle_t i2c_bus = NULL;
-  i2c_master_bus_config_t bus_config = {
-      .clk_source = I2C_CLK_SRC_DEFAULT,
-      .glitch_ignore_cnt = 7,
-      .i2c_port = I2C_BUS_PORT,
-      .sda_io_num = EXAMPLE_PIN_NUM_SDA,
-      .scl_io_num = EXAMPLE_PIN_NUM_SCL,
-      .flags.enable_internal_pullup = true,
-  };
-  ESP_ERROR_CHECK(i2c_new_master_bus(&bus_config, &i2c_bus));
-
   ESP_LOGI(TAG, "Install panel IO");
   esp_lcd_panel_io_handle_t io_handle = NULL;
   esp_lcd_panel_io_i2c_config_t io_config = {
       .dev_addr = EXAMPLE_I2C_HW_ADDR,
-      .scl_speed_hz = EXAMPLE_LCD_PIXEL_CLOCK_HZ,
+      .scl_speed_hz = I2C_MASTER_FREQ_HZ,
       .control_phase_bytes = 1,               // According to SSD1306 datasheet
       .lcd_cmd_bits = EXAMPLE_LCD_CMD_BITS,   // According to SSD1306 datasheet
       .lcd_param_bits = EXAMPLE_LCD_CMD_BITS, // According to SSD1306 datasheet
