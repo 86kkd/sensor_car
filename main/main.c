@@ -1,3 +1,4 @@
+#include "bh1750.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "olcd.h"
@@ -19,6 +20,11 @@ void app_main(void) {
   setup_AHT20();
   AHT20_data_t AHT20_data = {.RH = 0, .TEMP = 0};
   AHT20_measure(&AHT20_data); // first mesure
+  // setup bh1750
+  uint8_t MTime = 120;
+  setup_bh1750();
+  // bh1750_power_on();
+  // bh1750_set_measurement_time(MTime);
 
   // setup olcd
   lv_disp_t *disp = NULL;
@@ -30,9 +36,11 @@ void app_main(void) {
   while (1) {
     ESP_LOGI(TAG, "main thtread is running");
 
-    esp_err_t ret = AHT20_measure(&AHT20_data);
+    esp_err_t ret;
+    ret = AHT20_measure(&AHT20_data);
     // thread lock incase of read while wirte data
     if (lvgl_port_lock(0)) {
+      ret = bh1750_read(BH1750_MODE_ONE_TIME, BH1750_RES_LOW, &data[3]);
       data[1] = AHT20_data.TEMP;
       data[2] = AHT20_data.RH;
       lvgl_port_unlock();
