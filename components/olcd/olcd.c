@@ -44,7 +44,7 @@ static const char *TAG = "LCD";
 #define EXAMPLE_LCD_CMD_BITS 8
 #define EXAMPLE_LCD_PARAM_BITS 8
 
-extern void lvgl_ui(lv_disp_t *disp, int *data);
+extern void lvgl_ui(lv_disp_t *disp, float *data);
 extern i2c_master_bus_handle_t i2c_bus;
 
 lv_disp_t *setup_olcd(void) {
@@ -120,7 +120,7 @@ void run_olcd(void *pvParameters) {
   /* Rotation of the screen */
   olcd_data *lcd_data = (olcd_data *)pvParameters;
   lv_disp_t *disp = lcd_data->disp;
-  int *data = lcd_data->data;
+  float *data = lcd_data->data;
   lv_disp_set_rotation(disp, LV_DISP_ROT_NONE);
   ESP_LOGI(TAG, "Display LVGL Scroll Text");
   lvgl_ui(disp, data);
