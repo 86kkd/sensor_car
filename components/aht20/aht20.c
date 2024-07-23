@@ -4,7 +4,6 @@
 #include "freertos/task.h"
 #include "i2c_facter.h"
 
-#define AHT20_DEVICE_ADDR 0x38
 #define AHT20_READ_ADDR ((AHT20_DEVICE_ADDR << 1) | 1)
 #define AHT20_WRITE_ADDR ((AHT20_DEVICE_ADDR << 1) | 0)
 

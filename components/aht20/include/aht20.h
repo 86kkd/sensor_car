@@ -2,6 +2,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 
+#define AHT20_DEVICE_ADDR 0x38
 /// @brief a struce to storage the result
 typedef struct AHT20 {
   float RH;
