@@ -44,6 +44,7 @@ lv_obj_t *display_txt(lv_disp_t *disp, float *data, int16_t x, int16_t y) {
 }
 
 static void update_data_cb(lv_timer_t *timer) {
+  ESP_LOGI(TAG, "lcad thread is running");
   label_data *l_data = (label_data *)timer->user_data; // 更新标签的文本
   lv_obj_t *label = l_data->label;
   float *data = l_data->data;
@@ -61,12 +62,11 @@ void lvgl_ui(lv_disp_t *disp, float *data) {
   lv_obj_t *label;
   label = display_txt(disp, data, 0, 0);
   label_data l_data = {label, data};
-  lv_timer_t *timer = lv_timer_create(update_data_cb, 100, &l_data);
+  lv_timer_t *timer = lv_timer_create(update_data_cb, 500, &l_data);
   lv_timer_set_repeat_count(timer, -1);
   while (1) {
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (lvgl_port_lock(0)) {
-      ESP_LOGI(TAG, "lcad thread is running");
       lv_task_handler();
       // Release the mutex
       lvgl_port_unlock();
